@@ -13,7 +13,7 @@ class Rails52Tests < Minitest::Test
       :controller => 0,
       :model => 0,
       :template => 0,
-      :generic => 9
+      :generic => 11
     }
   end
 
@@ -101,6 +101,32 @@ class Rails52Tests < Minitest::Test
       :relative_path => "app/models/user.rb",
       :code => s(:call, s(:const, :User), :joins, s(:dstr, "INNER JOIN <complex join involving custom SQL and ", s(:evstr, s(:call, s(:call, nil, :reflect_on_association, s(:lit, :foos)), :foreign_key)), s(:str, " interpolation>"))),
       :user_input => s(:call, s(:call, nil, :reflect_on_association, s(:lit, :foos)), :foreign_key)
+  end
+
+  def test_sql_injection_splat
+    assert_warning :type => :warning,
+      :warning_code => 0,
+      :fingerprint => "836c6e169c33ca6410986bfff058c69d4798f3aad43b32b1222850577952eafc",
+      :warning_type => "SQL Injection",
+      :line => 28,
+      :message => /^Possible\ SQL\ injection/,
+      :confidence => 1,
+      :relative_path => "app/controllers/users_controller.rb",
+      :code => s(:call, s(:const, :Person), :where, s(:splat, s(:call, s(:params), :[], s(:lit, :foo)))),
+      :user_input => s(:call, s(:params), :[], s(:lit, :foo))
+  end
+
+  def test_sql_injection_kwsplat
+    assert_warning :type => :warning,
+      :warning_code => 0,
+      :fingerprint => "ad07ba619780118934476539f1cde0f6892cd831b5297575230f9ae62cf6f891",
+      :warning_type => "SQL Injection",
+      :line => 32,
+      :message => /^Possible\ SQL\ injection/,
+      :confidence => 0,
+      :relative_path => "app/controllers/users_controller.rb",
+      :code => s(:call, s(:const, :User), :where, s(:hash, s(:kwsplat, s(:call, s(:params), :[], s(:lit, :foo))))),
+      :user_input => s(:call, s(:params), :[], s(:lit, :foo))
   end
 
   def test_ignoring_freeze_generally

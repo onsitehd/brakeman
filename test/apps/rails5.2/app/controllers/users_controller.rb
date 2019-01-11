@@ -23,4 +23,12 @@ class UsersController < ApplicationController
 
     Person.where("#{foo} >= 1")
   end
+
+  def brakeman_does_not_catch_this
+    Person.where(*params[:foo]).qualify.all
+  end
+
+  def brakeman_does_not_catch_this_either
+    User.where(**params[:foo]).qualify.all
+  end
 end
